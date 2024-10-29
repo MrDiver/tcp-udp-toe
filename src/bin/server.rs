@@ -1,12 +1,12 @@
 use std::{io::Read, net};
 
 fn handle_stream(mut stream: net::TcpStream) {
-    println!("Got a connection lol");
+    println!("Got a connection");
     let mut buf = String::new();
-    let message = stream
+    let size = stream
         .read_to_string(&mut buf)
         .expect("Couldn't read from stream");
-    println!("We got: '{}'", message);
+    println!("We got {} bytes: '{}'", size, buf);
 }
 
 fn main() {
