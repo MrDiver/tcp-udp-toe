@@ -1,6 +1,7 @@
 #![allow(dead_code)]
 use std::error;
 use std::fmt;
+use std::mem;
 
 pub mod ticmasks {
     pub const FIELD: u32 = 0x0003FFFF;
@@ -15,7 +16,7 @@ pub mod ticonst {
 }
 
 #[derive(Debug)]
-struct FieldAlreadyUsed {
+pub struct FieldAlreadyUsed {
     failed_field: u8,
     used_by: Player,
 }
@@ -41,7 +42,7 @@ impl fmt::Display for FieldAlreadyUsed {
 }
 
 #[derive(Debug, PartialEq, Eq)]
-enum Player {
+pub enum Player {
     X,
     O,
 }
@@ -83,7 +84,7 @@ macro_rules! impl_from_t_player {
 }
 impl_from_t_player!(for u8,u16,u32,u64);
 
-struct TicField {
+pub struct TicField {
     /*
      * 0:18 Field Data
      * 19:19 Current Player
@@ -134,27 +135,59 @@ impl TicField {
             Ok(())
         }
     }
+    pub fn as_bytes(&self) -> [u8; 4] {
+        self.into()
+    }
+    pub fn from_bytes(value: &[u8]) -> TicField {
+        TicField {
+            bits: u32::from_ne_bytes(
+                value
+                    .try_into()
+                    .expect("Wrong number of bytes whooopppssssss"),
+            ),
+        }
+    }
+    pub fn as_vec(&self) -> Vec<&str> {
+        (0..9)
+            .map(|x| {
+                if self.is_field_set(x) {
+                    match self.get_player_for_field(x) {
+                        Player::X => "X",
+                        Player::O => "O",
+                    }
+                } else {
+                    "_"
+                }
+            })
+            .collect()
+    }
 }
 
 impl fmt::Display for TicField {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{:b}", self.bits)
+        let ret = write!(f, "\nBits: {:#032b}\n", self.bits);
+        let tmp = self.as_vec();
+        for y in 0..3 {
+            for x in 0..3 {
+                write!(f, "|{}", tmp[x + y * 3]).expect("Impossible");
+            }
+            write!(f, "|\n").expect("Impossible");
+        }
+
+        ret
     }
 }
 
-impl Into<[u8; 3]> for TicField {
-    fn into(self) -> [u8; 3] {
-        let tmp: Vec<u8> = (0u32..3).map(|x| ((0xff & self.bits) >> x) as u8).collect();
-        // Einfach weil es geht
-        [tmp[2], tmp[1], tmp[0]]
+impl Into<[u8; 4]> for &TicField {
+    fn into(self) -> [u8; 4] {
+        self.bits.to_ne_bytes()
     }
 }
 
-impl From<[u8; 3]> for TicField {
-    fn from(value: [u8; 3]) -> Self {
+impl From<[u8; 4]> for TicField {
+    fn from(value: [u8; 4]) -> Self {
         TicField {
-            // weil es immernoch geht
-            bits: (value[2] as u32) << 16 | (value[1] as u32) << 8 | (value[0] as u32),
+            bits: u32::from_ne_bytes(value),
         }
     }
 }

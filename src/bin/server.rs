@@ -1,12 +1,12 @@
 use std::{io::Read, net};
 
+use tcp_udp_toe::TicField;
+
 fn handle_stream(mut stream: net::TcpStream) {
     println!("Got a connection");
-    let mut buf = String::new();
-    let size = stream
-        .read_to_string(&mut buf)
-        .expect("Couldn't read from stream");
-    println!("We got {} bytes: '{}'", size, buf);
+    let mut buf = [0, 0, 0, 0];
+    let size = stream.read(&mut buf).expect("Couldn't read from stream");
+    println!("We got {} bytes: '{}'", size, TicField::from_bytes(&buf));
 }
 
 fn main() {
