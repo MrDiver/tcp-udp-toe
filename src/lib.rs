@@ -1,7 +1,5 @@
-#![allow(dead_code)]
 use std::error;
 use std::fmt;
-use std::mem;
 
 pub mod ticmasks {
     pub const FIELD: u32 = 0x0003FFFF;
