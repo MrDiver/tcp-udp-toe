@@ -1,6 +1,12 @@
 use std::error;
 use std::fmt;
 
+/*
+ * Yes this is ridiculous and everything is based on the concept that all the information of a Tic-Tac-Toe game fits into a u18
+ * and therefore we can exploit all the bits of a u32 with extra information which is neatly done
+ * in this code
+ */
+
 pub mod ticmasks {
     pub const FIELD: u32 = 0x0003FFFF;
     pub const CURRENTPLAYER: u32 = 0x00040000;
